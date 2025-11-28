@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id 'org.gradle.test-retry' version '1.6.2'
+    id 'io.qameta.allure' version '2.11.2'
+    id 'com.avast.gradle.docker-compose' version '0.17.12'
+}
+
+group = 'ru.netology'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.codeborne:selenide:6.19.1'
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'mysql:mysql-connector-java:8.0.33'
+    testImplementation 'org.postgresql:postgresql:42.6.0'
+    testImplementation 'io.qameta.allure:allure-selenide:2.24.0'
+    testImplementation 'io.qameta.allure:allure-junit5:2.24.0'
+    testImplementation 'io.github.bonigarcia:webdrivermanager:5.8.0'
+
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+}
+
+test {
+    useJUnitPlatform()
+    retry {
+        maxRetries = 2
+        failOnPassedAfterRetry = true
+    }
+
+    doFirst {
+        // единый флаг
+        def dbType = System.getenv('DB_TYPE') ?: 'postgres'
+        systemProperty 'db.type', dbType
+
+        if (dbType == 'mysql') {
+            // контейнер mysql проброшен наружу на 3307
+            systemProperty 'db.url',
+                    "jdbc:mysql://localhost:3307/app?allowPublicKeyRetrieval=true&useSSL=false&connectTimeout=10000"
+        } else {
+            // контейнер postgres проброшен на 5434
+            systemProperty 'db.url', "jdbc:postgresql://localhost:5434/app"
+        }
+
+        systemProperty 'db.user', 'app'
+        systemProperty 'db.password', 'pass'
+    }
+}
+
+dockerCompose {
+    useComposeFiles = ['docker-compose.yml']
+    startedServices = []
+    stopContainers = false
+    removeContainers = false
+    removeOrphans = false
+}

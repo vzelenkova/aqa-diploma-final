@@ -1,0 +1,58 @@
+services:
+  mysql:
+    image: mysql:8.0.33
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: pass
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./mysql.sql:/docker-entrypoint-initdb.d/mysql.sql:ro
+    restart: always
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: app
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+      - ./pgsql.sql:/docker-entrypoint-initdb.d/pgsql.sql:ro
+    restart: always
+
+  bank-emulator:
+    build: ./bank-emulator
+    container_name: bank-emulator
+    ports:
+      - "9999:9999"
+    restart: always
+
+  aqa-shop:
+    container_name: aqa-shop
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - postgres
+      - bank-emulator
+    environment:
+      DB_TYPE: ${DB_TYPE:-postgres}   # значение по умолчанию postgres
+
+      DB_USER: app
+      DB_PASSWORD: pass
+
+      SPRING_PAYMENT_GATE_URL: http://bank-emulator:9999/payment
+      SPRING_CREDIT_GATE_URL: http://bank-emulator:9999/credit
+
+    restart: always
