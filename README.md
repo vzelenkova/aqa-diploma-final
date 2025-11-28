@@ -42,7 +42,9 @@ sudo apt install ./google-chrome-stable_114.0.5735.198-1_amd64.deb
 
 ## 2.1. Очистите старые данные
 sudo rm -rf pg_data mysql_data
+
 sudo mkdir -p mysql_data
+
 sudo mkdir -p pg_data
 
 ## 2.2. Запустите контейнеры
@@ -53,13 +55,17 @@ sudo docker compose up --build
 ## Для MySQL:
 
 sudo DB_TYPE=mysql ./gradlew test
+
 sudo ./gradlew allureReport
+
 sudo ./gradlew allureServe  
 
 ## Для PostgreSQL (по умолчанию):
 
 sudo ./gradlew test
+
 sudo ./gradlew allureReport
+
 sudo ./gradlew allureServe
 
 ## Остановка:
