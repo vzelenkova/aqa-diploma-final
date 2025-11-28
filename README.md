@@ -47,12 +47,11 @@ sudo mkdir -p mysql_data
 
 sudo mkdir -p pg_data
 
-## 2.2. Запустите контейнеры
-sudo docker compose up --build
-
 # 3. Запустите тесты
 
 ## Для MySQL:
+
+sudo DB_TYPE=mysql docker compose up --build
 
 sudo DB_TYPE=mysql ./gradlew test
 
@@ -61,6 +60,8 @@ sudo ./gradlew allureReport
 sudo ./gradlew allureServe  
 
 ## Для PostgreSQL (по умолчанию):
+
+sudo docker compose up --build
 
 sudo ./gradlew test
 
